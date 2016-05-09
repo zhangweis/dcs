@@ -1,8 +1,8 @@
 {
   "accounts": [
     {
-      "address": "12689276124377866410L",
-      "publicKey": "dcde6376da809185a9551760e33e5154eb4020b12da482b0ffba99ea5076b63c",
+      "address": "16313739661670634666L",
+      "publicKey": "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f",
       "balance": 10000000000000000,
       "secondPublicKey": null
     }
@@ -617,7 +617,7 @@
   ],
   "votes": {
     "publicKeys": [
-      "dcde6376da809185a9551760e33e5154eb4020b12da482b0ffba99ea5076b63c"
+      "c094ebee7ec0c50ebee32918655e089f6e1a604b83bcaa760293c61e0f18ab6f"
     ],
     "votes": [
       "+e0707fa4f88ab2869a64d6de7138f48e01780e02041650bfa60b17fb2929b07c",
