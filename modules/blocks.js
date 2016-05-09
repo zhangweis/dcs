@@ -322,7 +322,8 @@ private.afterSave = function (block, cb) {
 	async.eachSeries(block.transactions, function (transaction, cb) {
 		return library.logic.transaction.afterSave(transaction, cb);
 	}, function (err) {
-		return cb(err);
+		if (err||!modules) return cb(err);
+		modules.dice.afterBlockSaved(block, cb);
 	});
 }
 

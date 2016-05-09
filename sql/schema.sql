@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS "intransfer"("dappId" VARCHAR(20) NOT NULL, "transact
 CREATE TABLE IF NOT EXISTS "outtransfer"("transactionId" VARCHAR(20) NOT NULL, "dappId" VARCHAR(20) NOT NULL, "outTransactionId" VARCHAR(20) NOT NULL UNIQUE, FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS "peers"("id" SERIAL NOT NULL PRIMARY KEY, "ip" INET NOT NULL, "port" SMALLINT NOT NULL, "state" SMALLINT NOT NULL, "os" VARCHAR(64), "sharePort" SMALLINT NOT NULL, "version" VARCHAR(11), "clock" BIGINT);
 CREATE TABLE IF NOT EXISTS "peers_dapp"("peerId" INT NOT NULL, "dappid" VARCHAR(20) NOT NULL, FOREIGN KEY("peerId") REFERENCES "peers"("id") ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS "asset_dices"("transactionId" VARCHAR(21) NOT NULL, "amount" BIGINT NOT NULL, "payout" BIGINT NOT NULL, "rollHigh" INT NOT NULL, "resolveBlockHeight" INT, "luckyNumber" INT, "paidOut" BIGINT, FOREIGN KEY("transactionId") REFERENCES "trs"("id") ON DELETE CASCADE);
 
 /* Unique Indexes */
 CREATE UNIQUE INDEX IF NOT EXISTS "blocks_height" ON "blocks"("height");
@@ -24,6 +25,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "blocks_previousBlock" ON "blocks"("previousBl
 CREATE UNIQUE INDEX IF Not EXISTS "out_transaction_id" ON "outtransfer"("outTransactionId");
 CREATE UNIQUE INDEX IF NOT EXISTS "peers_unique" ON "peers"("ip", "port");
 CREATE UNIQUE INDEX IF NOT EXISTS "peers_dapp_unique" ON "peers_dapp"("peerId", "dappid");
+CREATE UNIQUE INDEX IF NOT EXISTS "asset_dices_tx_id" ON "asset_dices"("transactionId");
 
 /* Indexes */
 CREATE INDEX IF NOT EXISTS "blocks_rowId" ON "blocks"("rowId");
@@ -46,6 +48,8 @@ CREATE INDEX IF NOT EXISTS "delegates_trs_id" ON "delegates"("transactionId");
 CREATE INDEX IF NOT EXISTS "multisignatures_trs_id" ON "multisignatures"("transactionId");
 CREATE INDEX IF NOT EXISTS "dapps_trs_id" ON "dapps"("transactionId");
 CREATE INDEX IF NOT EXISTS "dapps_name" ON "dapps"("name");
+CREATE INDEX IF NOT EXISTS "asset_dices_txId" ON "asset_dices"("transactionId");
+CREATE INDEX IF NOT EXISTS "asset_dices_resolveHeight" ON "asset_dices"("resolveBlockHeight");
 
 /* Peers */
 UPDATE "peers" SET "state" = 1, "clock" = NULL WHERE "state" != 0;

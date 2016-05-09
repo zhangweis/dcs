@@ -3,9 +3,8 @@
     "address": "0.0.0.0",
     "serveHttpAPI": true,
     "serveHttpWallet": true,
-    "version": "0.2.1",
+    "version": "0.2.0",
     "fileLogLevel": "info",
-    "logFileName": "logs.log",
     "consoleLogLevel": "log",
     "sharePort": true,
     "db": {
@@ -29,23 +28,7 @@
     "peers": {
         "list": [
             {
-                "ip": "13.69.159.242",
-                "port": 7000
-            },
-            {
-                "ip": "40.68.34.176",
-                "port": 7000
-            },
-            {
-                "ip": "52.165.40.188",
-                "port": 7000
-            },
-            {
-                "ip": "13.82.31.30",
-                "port": 7000
-            },
-            {
-                "ip": "13.91.61.2",
+                "ip": "192.168.199.117",
                 "port": 7000
             }
         ],
@@ -55,7 +38,7 @@
         }
     },
     "forging": {
-        "secret": [],
+        "secret": ["guitar federal embody hope length typical try add spatial measure fish exercise","civil under kit strategy under traffic burden chat jewel cram funny make","melody best force giant hunt summer patrol square social south resource piece","front shiver price what style sword curve trap news post economy flee","brain undo grace planet theory alien minute beauty toward paddle claim guard","provide december amateur lawsuit drop crystal genre gym inch glue glue crush","much ship ordinary under book bitter they napkin radar unusual shallow present","cousin alter select bronze twist bonus allow amazing dice beach genius ring","earth vault chalk power huge absent embark spell arrest moon subway dynamic","hen very day two palace dove plate common dress alley clap faculty","hurry ignore sponsor fossil evolve drift radio office stadium gloom enroll barrel","around warrior surge rich often sport thing arena either language antenna engage","tail energy unveil manual drift quick educate soup sentence pencil gallery mail","fiction damp seek visual choice garment wheel ice dentist worry real acid","remind high bunker frost topic uphold illegal knife action august object forget","blossom retire mutual album rocket urge cattle blast hungry around pull corn","slice diagram grass leave flower produce cheap enemy upper thumb learn dignity","trophy globe silver boost dutch forum vehicle stay wood faint devote oven","romance release canyon foil cricket lion trigger voice rookie limb wide ginger","doctor sponsor remove mind dinosaur meat lion until rice strike quantum tube","stone auction slow window nothing wife nice rug dove access axis whale","room extra blind faith fiction cradle inherit square desert state father lounge","enrich anxiety milk rich old wear cat talk occur pyramid test slush","check margin peace emotion noodle stable talent boat legend spoon shoulder accuse","space flock swear voice circle jungle type away toilet moral odor dog","join artwork code celery spike village race rack bronze hair ahead toddler","rack slight number fork cloth chef month meadow all balance game book","april great soul roast web elephant van reform type tackle plate release","globe fat circle fuel job soldier agree vanish minimum logic catalog pool","orient notable seed tissue lunch october twice control flash finish attend square","youth pass labor artist nephew result screen impulse unique sing journey large","alley gospel pull yard blind soccer special add hundred foil bottom canyon","want rabbit lens salmon glare garden crop rubber arm field busy travel","obtain witness excite banner surround crazy people milk cat nut belt cream","adult gown wrap hint unable furnace humor cereal rotate quick matrix tray","verb benefit theme genuine clean simple sure wrestle more doll together spider","bright bind extra give salmon tennis ill join street clarify frog circle","aim easily company protect another trouble twin slush cross tomorrow juice universe","settle valve wreck column gun tenant nerve virtual issue female luggage venue","beyond quit permit art hen excuse churn purse nest return spin dance","face turkey motor begin require meat ankle orchard escape tooth must copy","normal loop wheel twin used oil bridge size vacuum motor kitchen crucial","judge shiver letter patch hard blood penalty little august patrol clean chat","wire basic sting lonely loan zero early tool pave bacon give choose","top lazy chronic milk section trophy train tone pride outer want upon","avoid energy execute museum ocean small soup later bread true puzzle asthma","service luxury skill wait another ridge teach fetch decrease answer distance wild","process snap moment jelly pause bus hire bronze student fire drum select","strong law claim frown axis rose connect spray coin soap green wet","hello coral puzzle crucial sight diagram jump pet notable capable village key","runway fatal chapter fantasy cannon pizza often smoke collect science timber trigger","devote garage nothing cancel mercy win outdoor bright faculty flush olive across","foil aunt harvest october crater treat merit length vehicle crime bottom tag","grace cousin copper corn spike endless bone dry together fitness angle expect","spy toddler beach liberty news vault brave stage solar margin stage wet","awkward announce scan deer pulp dynamic snake wagon genuine say survey enforce","thought lyrics damp mind limit grape easy predict chapter box liar vault","rude owner run decide pledge surface assault resemble pilot extend zero choice","stock soccer impose other weird fossil boil wish satoshi junior already window","risk inquiry wisdom mandate marriage cage sadness measure inspire memory muffin scrap","march goddess roast alien mushroom heart win still trouble pudding rifle bright","dumb alone high custom rabbit pass topic salmon whale chicken visual mango","boat autumn blush quantum never second giggle oyster since dismiss arrest gasp","predict entire recipe fade balcony flat bench resource ozone work cake pigeon","bless cable gap indoor believe large stand breeze acquire differ obtain letter","victory know panel private mix spatial royal valve aware soldier omit where","select tenant crop raise utility tortoise over tuition capable sell secret pet","hammer embrace double spare again people early vessel catch ranch sing large","clock annual honey board alter behave force consider peace expose simple blush","fragile hurry purchase have squeeze wave glide diagram series more bright thought","asset purchase always bounce junior smooth unique series estate omit grit pluck","wood tennis submit scissors broken pen purpose frame mixed drip word permit","crater insect human wage insane across library warrior tragic nasty pen emerge","old stem finger pig peasant nation scatter album bread mobile couch vacant","rebuild warm speak cheap six brown demand motor art area tomato place","room rookie bus child snake judge video envelope design category negative enter","pen space crawl grief tent size park antenna unaware old tumble fabric","vote loud change spoil onion vessel seat ramp tomorrow denial because obey","cereal crumble flip victory disorder task error debate craft potato burger biology","bag damp glow drift diamond onion now lounge unable response hero access","initial silver again episode payment use hedgehog improve bacon denial charge resemble","tomato across case portion web pioneer payment agree diagram curious fury ceiling","wear deal remove tape catch devote toe gold safe garbage fame galaxy","ozone size tape hello industry critic light second someone deliver bird pond","record ceiling matrix slush enlist ask ceiling math else custom build observe","giraffe tired sniff entry journey hybrid achieve camera text drama salon holiday","science force picture retreat tool jeans enjoy scheme fossil arm orbit test","notice original nation wish normal absent must cool better brick final glow","help typical champion fog wash twist wash this furnace system segment mansion","subway people cycle van endorse arrest pact wheel sustain visa again order","fold wagon gesture icon bullet tornado allow peanut royal cup boat planet","robot furnace output sadness later talk fish october raven cabin noble gas","soccer business tobacco brand drum clog bargain copy soda arrow define brand","course nephew myth tongue smart daughter inject legend sugar bundle list index","style scissors wink wing wise service cricket crazy winner bomb found exclude","element note theory install jacket shy initial bar hamster sniff enrich purpose","muscle morning arctic uncover strategy hawk obvious news wet smooth lumber original","way boil roof mouse mask demise gallery argue human token bar ostrich","cruel cabin crucial worry lemon word gasp fossil year transfer economy engage","van trick pencil kit lizard wasp injury injury comic tennis mystery carpet","aim grunt east swarm release elbow tooth casino swift open start pledge"],
         "access": {
             "whiteList": [
                 "127.0.0.1"
@@ -77,7 +60,7 @@
     },
     "dapp": {
         "masterrequired": true,
-        "masterpassword": "",
+        "masterpassword": "2hvGKCXjMqBG",
         "autoexec": []
     }
 }
