@@ -579,7 +579,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"FROM blocks b " +
 				"LEFT OUTER JOIN trs AS t ON t.\"blockId\" = b.\"id\" " +
 				"LEFT OUTER JOIN delegates AS d ON d.\"transactionId\" = t.\"id\" " +
-				"LEFT OUTER JOIN dices AS dice ON dice.\"transactionId\" = t.\"id\" " +
+				"LEFT OUTER JOIN asset_dices AS dice ON dice.\"transactionId\" = t.\"id\" " +
 
 				"LEFT OUTER JOIN votes AS v ON v.\"transactionId\" = t.\"id\" " +
 				"LEFT OUTER JOIN signatures AS s ON s.\"transactionId\" = t.\"id\" " +
