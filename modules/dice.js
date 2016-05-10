@@ -216,13 +216,13 @@ Dice.prototype.dbSave = function (trs) {
 }
 
 Dice.prototype.dbRead = function (row) {
-    if (!row.transactionId) {
+    if (!row.dice_amount) {
         return null;
     } else {
         return {
             dice: {
-                amount: row.dice_amount,
-                payout: row.dice_payout,
+                amount: parseInt(row.dice_amount),
+                payout: parseInt(row.dice_payout),
                 rollHigh: row.dice_rollHigh
             }
         };
@@ -233,6 +233,7 @@ Dice.prototype.process = function (trs, sender, cb) {
 }
 
 Dice.prototype.objectNormalize = function (trs) {
+    console.log(trs.asset)
     var report = library.scheme.validate(trs.asset, {
         type: "object", // It is an object
         properties: {
@@ -248,7 +249,7 @@ Dice.prototype.objectNormalize = function (trs) {
                         minimum: 0
                     },
                     rollHigh: {
-                         type: "boolean"
+                         type: "integer"
                      }
                 },
                 required: ["amount", "payout", "rollHigh"]
