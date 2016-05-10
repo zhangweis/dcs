@@ -220,7 +220,11 @@ Dice.prototype.dbRead = function (row) {
         return null;
     } else {
         return {
-            dice: row.dice
+            dice: {
+                amount: row.dice_amount,
+                payout: row.dice_payout,
+                rollHigh: row.dice_rollHigh
+            }
         };
     }
 }

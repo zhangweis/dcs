@@ -570,6 +570,7 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"ENCODE(s.\"publicKey\", 'hex') AS \"s_publicKey\", " +
 				"d.\"username\" AS \"d_username\", " +
 				"v.\"votes\" AS \"v_votes\", " +
+				"dice.\"amount\" AS \"dice_amount\", dice.\"payout\" AS \"dice_payout\", dice.\"rollHigh\" AS \"dice_rollHigh\", " +
 				"m.\"min\" AS \"m_min\", m.\"lifetime\" AS \"m_lifetime\", m.\"keysgroup\" AS \"m_keysgroup\", " +
 				"dapp.\"name\" AS \"dapp_name\", dapp.\"description\" AS \"dapp_description\", dapp.\"tags\" AS \"dapp_tags\", dapp.\"type\" AS \"dapp_type\", dapp.\"link\" AS \"dapp_link\", dapp.\"category\" AS \"dapp_category\", dapp.\"icon\" AS \"dapp_icon\", " +
 				"it.\"dappId\" AS \"in_dappId\", " +
@@ -578,6 +579,8 @@ Blocks.prototype.loadBlocksData = function (filter, options, cb) {
 				"FROM blocks b " +
 				"LEFT OUTER JOIN trs AS t ON t.\"blockId\" = b.\"id\" " +
 				"LEFT OUTER JOIN delegates AS d ON d.\"transactionId\" = t.\"id\" " +
+				"LEFT OUTER JOIN dices AS dice ON dice.\"transactionId\" = t.\"id\" " +
+
 				"LEFT OUTER JOIN votes AS v ON v.\"transactionId\" = t.\"id\" " +
 				"LEFT OUTER JOIN signatures AS s ON s.\"transactionId\" = t.\"id\" " +
 				"LEFT OUTER JOIN multisignatures AS m ON m.\"transactionId\" = t.\"id\" " +
