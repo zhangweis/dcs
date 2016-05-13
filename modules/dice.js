@@ -319,7 +319,7 @@ Dice.prototype.add = function (query1, cb) {
                         minimum: 0
                     },
                      rollHigh: {
-                           type: "boolean"
+                           type: "integer"
                      },
                      resolveBlockHeight: {
                          type: "integer",
