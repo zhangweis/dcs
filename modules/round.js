@@ -88,7 +88,8 @@ Round.prototype.directionSwap = function (direction, lastBlock, cb) {
 
 Round.prototype.backwardTick = function (block, previousBlock, cb) {
 	function done(err) {
-		cb && cb(err);
+	    if (err) return cb(err);
+	    modules.dice.beforeDeleteBlock(block, cb);
 	}
 
 	modules.accounts.mergeAccountAndGet({

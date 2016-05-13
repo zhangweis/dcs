@@ -87,6 +87,36 @@ Dice.prototype.undo = function (trs, block, sender, cb) {
     }, cb);
 }
 
+Dice.prototype.beforeDeleteBlock = function(block, cb){
+    var sql = jsonSql.build({
+        table: "trs",
+        alias: "t",
+        condition: {blockId: block.id},
+        fields: ['id', 'type', 'senderId', 'senderPublicKey', 'recipientId', 't.timestamp', 't.amount', 'fee', 'signature', 'blockId', 'transactionId', {'td.amount':'td_amount'}, 'payout', 'rollHigh', 'luckyNumber', 'resolveBlockHeight', 'paidOut'],
+        sort: {'timestamp':-1},
+        join: [{
+            type: 'inner',
+            table: 'asset_dices',
+            alias: "td",
+            fields:['amount', 'payout', 'rollHigh', 'paidOut'],
+            on: {"t.id": "td.transactionId"}
+        }]
+    });
+    library.db.query(sql.query, sql.values).then(function(transactions){
+        async.each(transactions,function(tx, cb) {
+            if (tx.paidOut>0) {
+                modules.accounts.mergeAccountAndGet({
+                    address: tx.senderId,
+                    balance: -tx.paidOut,
+                    u_balance: -tx.paidOut
+                }, cb);
+            } else {
+                cb();
+            }
+        }, cb);
+    }).catch(cb);
+
+}
 Dice.prototype.afterBlockSaved = function(block, cb){
     //dispatch resolve height
     async.each(block.transactions, function(trs, cb) {
