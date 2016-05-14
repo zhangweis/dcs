@@ -363,7 +363,10 @@ Dice.prototype.add = function (query1, cb) {
                 });
                 
                 // Send transaction for processing
-                modules.transactions.processUnconfirmedTransaction(transaction, true, cb);
+                modules.transactions.processUnconfirmedTransaction(transaction, true, function(e) {
+                    if (e) return cb(e);
+                    cb(e, {id:transaction.id});
+                });
             } catch (e) {
                 // Catch error if something goes wrong
                 return setImmediate(cb, e);
