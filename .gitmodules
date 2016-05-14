@@ -1,6 +1,6 @@
 [submodule "public"]
 	path = public
-	url = git@github.com:zhangweis/jds-ui.git
+	url = https://github.com/zhangweis/jds-ui.git 
 [submodule "test/lisk-js"]
 	path = test/lisk-js
 	url = https://github.com/LiskHQ/lisk-js.git
