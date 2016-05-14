@@ -404,6 +404,7 @@ Dice.prototype.list = function (query1, cb) {
             condition: condition,
             fields: ['id', 'type', 'senderId', 'senderPublicKey', 'recipientId', 't.timestamp', 't.amount', 'fee', 'signature', 'blockId', 'transactionId', {'td.amount':'td_amount'}, 'payout', 'rollHigh', 'luckyNumber', 'resolveBlockHeight', 'paidOut'],
             sort: {'timestamp':-1},
+            limit: 100,
             join: [{
                 type: 'left outer',
                 table: 'asset_dices',
