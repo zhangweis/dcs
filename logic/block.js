@@ -27,7 +27,11 @@ private.getAddressByPublicKey = function (publicKey) {
 	var address = bignum.fromBuffer(temp).toString() + "L";
 	return address;
 }
-
+private.getSecret = function(previousBlockId, keypair) {
+    var privatekeyHash = crypto.createHash('sha256').update(keypair.privateKey.toString('hex')).digest();
+    var secret = crypto.createHash('sha256').update(privatekeyHash).update(previousBlockId).digest();
+    return secret.toString('hex');
+}
 // Public methods
 Block.prototype.create = function (data) {
 	var transactions = data.transactions.sort(function compare(a, b) {
@@ -62,30 +66,42 @@ Block.prototype.create = function (data) {
 		blockTransactions.push(transaction);
 		payloadHash.update(bytes);
 	}
+	var sql = "SELECT b.\"height\" FROM blocks b " +
+    "WHERE ENCODE(\"generatorPublicKey\", 'hex') = ${generatorPublicKey} ORDER BY \"height\" DESC LIMIT 1" ;
+	return this.scope.db.query(sql, {generatorPublicKey:data.keypair.publicKey.toString('hex')}).then(function(rows){
+	    if (rows.length) {
+	        var sql = "SELECT b.\"id\" FROM blocks b where \"height\"=${height}" ;
+            return this.scope.db.query(sql, {height:rows[0].height-1}).then(function(rows) {
+                return private.getSecret(rows[0].id, data.keypair);
+            });
+	    } else {
+	        return '0000000000000000000000000000000000000000000000000000000000000000';
+	    }
+	}.bind(this)).then(function(previousSecret){
+	    var secretHash = private.getSecret(data.previousBlock.id, data.keypair);
+	    secretHash = crypto.createHash('sha256').update(new Buffer(secretHash, 'hex')).digest().toString('hex');
+    var block = {
+        version: 0,
+        totalAmount: totalAmount,
+        totalFee: totalFee,
+        reward: reward,
+        previousSecret: previousSecret,
+        secretHash: secretHash,
+        payloadHash: payloadHash.digest().toString('hex'),
+        timestamp: data.timestamp,
+        numberOfTransactions: blockTransactions.length,
+        payloadLength: size,
+        previousBlock: data.previousBlock.id,
+        generatorPublicKey: data.keypair.publicKey.toString('hex'),
+        transactions: blockTransactions
+    };
 
-	var block = {
-		version: 0,
-		totalAmount: totalAmount,
-		totalFee: totalFee,
-		reward: reward,
-		payloadHash: payloadHash.digest().toString('hex'),
-		timestamp: data.timestamp,
-		numberOfTransactions: blockTransactions.length,
-		payloadLength: size,
-		previousBlock: data.previousBlock.id,
-		generatorPublicKey: data.keypair.publicKey.toString('hex'),
-		transactions: blockTransactions
-	};
+        block.blockSignature = this.sign(block, data.keypair);
 
-	try {
-		block.blockSignature = this.sign(block, data.keypair);
-
-		block = this.objectNormalize(block);
-	} catch (e) {
-		throw Error(e.toString());
-	}
-
-	return block;
+        block = this.objectNormalize(block);
+    return block;
+	    
+	}.bind(this))
 }
 
 Block.prototype.sign = function (block, keypair) {
@@ -118,6 +134,14 @@ Block.prototype.getBytes = function (block) {
 		bb.writeLong(block.totalAmount);
 		bb.writeLong(block.totalFee);
 		bb.writeLong(block.reward);
+		var previousSecretBuffer = new Buffer(block.previousSecret, 'hex');
+        for (var i = 0; i < previousSecretBuffer.length; i++) {
+            bb.writeByte(previousSecretBuffer[i]);
+        }
+        var secretHashBuffer = new Buffer(block.secretHash, 'hex');
+        for (var i = 0; i < secretHashBuffer.length; i++) {
+            bb.writeByte(secretHashBuffer[i]);
+        }
 
 		bb.writeInt(block.payloadLength);
 
@@ -149,7 +173,6 @@ Block.prototype.getBytes = function (block) {
 
 Block.prototype.verifySignature = function (block) {
 	var remove = 64;
-
 	try {
 		var data = this.getBytes(block);
 		var data2 = new Buffer(data.length - remove);
@@ -164,8 +187,17 @@ Block.prototype.verifySignature = function (block) {
 	} catch (e) {
 		throw Error(e.toString());
 	}
-
+    var sql = "SELECT ENCODE(b.\"secretHash\", 'hex') AS secret_hash FROM blocks b " +
+    "WHERE ENCODE(\"generatorPublicKey\", 'hex') = ${generatorPublicKey} AND \"height\"<${height} ORDER BY \"height\" DESC LIMIT 1" ;
+    return this.scope.db.query(sql, {generatorPublicKey:block.generatorPublicKey, height: block.height}).then(function(rows){
+        if (rows.length) {
+            if (rows[0].secret_hash!=crypto.createHash('sha256').update(new Buffer(block.previousSecret, 'hex')).digest().toString('hex')) {
+                throw 'previousSecret '+block.previousSecret+' not matched with last secretHash ' + rows[0].secret_hash;
+            };
+        }
+    }).then(function(){
 	return res;
+    });
 }
 
 Block.prototype.dbTable = "blocks";
@@ -180,6 +212,8 @@ Block.prototype.dbFields = [
 	"totalAmount",
 	"totalFee",
 	"reward",
+	"previousSecret",
+	"secretHash",
 	"payloadLength",
 	"payloadHash",
 	"generatorPublicKey",
@@ -191,6 +225,8 @@ Block.prototype.dbSave = function (block) {
 		var payloadHash = new Buffer(block.payloadHash, 'hex');
 		var generatorPublicKey = new Buffer(block.generatorPublicKey, 'hex');
 		var blockSignature = new Buffer(block.blockSignature, 'hex');
+		var previousSecret = new Buffer(block.previousSecret, 'hex');
+		var secretHash = new Buffer(block.secretHash, 'hex');
 	} catch (e) {
 		throw e.toString();
 	}
@@ -208,6 +244,8 @@ Block.prototype.dbSave = function (block) {
 			totalAmount: block.totalAmount,
 			totalFee: block.totalFee,
 			reward: block.reward || 0,
+			previousSecret: previousSecret,
+			secretHash: secretHash,
 			payloadLength: block.payloadLength,
 			payloadHash: payloadHash,
 			generatorPublicKey: generatorPublicKey,
@@ -268,6 +306,14 @@ Block.prototype.objectNormalize = function (block) {
 				type: "integer",
 				minimum: 0
 			},
+			previousSecret: {
+			    type: "string",
+                format: "hex"
+			},
+			secretHash: {
+                type: "string",
+                format: "hex"
+            },
 			transactions: {
 				type: "array",
 				uniqueItems: true
@@ -277,7 +323,7 @@ Block.prototype.objectNormalize = function (block) {
 				minimum: 0
 			}
 		},
-		required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'transactions', 'version']
+		required: ['blockSignature', 'generatorPublicKey', 'numberOfTransactions', 'payloadHash', 'payloadLength', 'timestamp', 'totalAmount', 'totalFee', 'reward', 'previousSecret', 'secretHash', 'transactions', 'version']
 	});
 
 	if (!report) {
@@ -328,6 +374,8 @@ Block.prototype.dbRead = function (raw) {
 			totalAmount: parseInt(raw.b_totalAmount),
 			totalFee: parseInt(raw.b_totalFee),
 			reward: parseInt(raw.b_reward),
+			previousSecret: raw.b_previousSecret,
+			secretHash: raw.b_secretHash,
 			payloadLength: parseInt(raw.b_payloadLength),
 			payloadHash: raw.b_payloadHash,
 			generatorPublicKey: raw.b_generatorPublicKey,
