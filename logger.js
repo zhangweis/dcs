@@ -33,7 +33,7 @@ module.exports = function (config) {
 				"message": caption,
 				"timestamp": strftime("%F %T", new Date())
 			}
-
+            if (data && data.stack) console.error(data.stack);
 			data && (log["data"] = data);
 
 			if (config.levels[config.errorLevel] <= config.levels[log.level]) {
