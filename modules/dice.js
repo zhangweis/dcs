@@ -4,6 +4,7 @@ var constants = require("../helpers/constants.js");
 var crypto = require('crypto');
 var ed = require('ed25519');
 var async = require('async');
+var slots = require('../helpers/slots.js');
 
 var private = {}, self = null,
     library = null, modules = null;
@@ -295,6 +296,37 @@ Dice.prototype.objectNormalize = function (trs) {
 
 Dice.prototype.onBind = function (_modules) {
     modules = _modules;
+}
+
+private.shuffleThem=function(truncDelegateList, except, secret) {
+    var currentSeed = crypto.createHash('sha256').update(new Buffer(secret, 'hex'), 'utf8').digest();
+    var indexes = truncDelegateList.map(function(item, index) {
+        return index;
+    }).filter(function(index){
+        return except.indexOf(truncDelegateList[index])<0;
+    });
+    for (var i = 0, delCount = indexes.length; i < delCount; i++) {
+        for (var x = 0; x < 4 && i < delCount; i++, x++) {
+            var newIndex = currentSeed[x] % delCount;
+            var b = truncDelegateList[indexes[newIndex]];
+            truncDelegateList[indexes[newIndex]] = truncDelegateList[indexes[i]];
+            truncDelegateList[indexes[i]] = b;
+        }
+        currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
+    }
+}
+Dice.prototype.shuffleDelegates = function (height, truncDelegateList, cb) {
+    library.db.query("SELECT ENCODE(\"generatorPublicKey\", 'hex') AS generator_public_key, ENCODE(b.\"previousSecret\", 'hex') as previous_secret, \"timestamp\", \"height\" FROM blocks b WHERE \"height\">=${height} ORDER BY \"height\"", {height:Math.floor(height/slots.delegates)*slots.delegates}).then(function(rows){
+        var except = [];
+        for(var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+            var row = rows[rowIndex];
+            var slotsFromLastRound = slots.getSlotNumber(row.timestamp)-slots.getSlotNumber(rows[0].timestamp);
+            private.shuffleThem(truncDelegateList, slotsFromLastRound>=slots.delegates?[]:except, row.previous_secret);
+
+            if (rowIndex>0) except.push(row.generator_public_key);
+        }
+        cb(null, truncDelegateList);
+    }).catch(cb);
 }
 
 Dice.prototype.add = function (query1, cb) {

@@ -32,6 +32,20 @@ private.getSecret = function(previousBlockId, keypair) {
     var secret = crypto.createHash('sha256').update(privatekeyHash).update(previousBlockId).digest();
     return secret.toString('hex');
 }
+private.getPreviousSecret = function(db, keypair) {
+    var sql = "SELECT b.\"height\" FROM blocks b " +
+    "WHERE ENCODE(\"generatorPublicKey\", 'hex') = ${generatorPublicKey} ORDER BY \"height\" DESC LIMIT 1" ;
+    return db.query(sql, {generatorPublicKey:keypair.publicKey.toString('hex')}).then(function(rows){
+        if (rows.length) {
+            var sql = "SELECT b.\"id\" FROM blocks b where \"height\"=${height}" ;
+            return db.query(sql, {height:rows[0].height-1}).then(function(rows) {
+                return private.getSecret(rows[0].id, keypair);
+            });
+        } else {
+            return '0000000000000000000000000000000000000000000000000000000000000000';
+        }
+    }.bind(this));
+}
 // Public methods
 Block.prototype.create = function (data) {
 	var transactions = data.transactions.sort(function compare(a, b) {
@@ -66,27 +80,12 @@ Block.prototype.create = function (data) {
 		blockTransactions.push(transaction);
 		payloadHash.update(bytes);
 	}
-	var sql = "SELECT b.\"height\" FROM blocks b " +
-    "WHERE ENCODE(\"generatorPublicKey\", 'hex') = ${generatorPublicKey} ORDER BY \"height\" DESC LIMIT 1" ;
-	return this.scope.db.query(sql, {generatorPublicKey:data.keypair.publicKey.toString('hex')}).then(function(rows){
-	    if (rows.length) {
-	        var sql = "SELECT b.\"id\" FROM blocks b where \"height\"=${height}" ;
-            return this.scope.db.query(sql, {height:rows[0].height-1}).then(function(rows) {
-                return private.getSecret(rows[0].id, data.keypair);
-            });
-	    } else {
-	        return '0000000000000000000000000000000000000000000000000000000000000000';
-	    }
-	}.bind(this)).then(function(previousSecret){
-	    var secretHash = private.getSecret(data.previousBlock.id, data.keypair);
-	    secretHash = crypto.createHash('sha256').update(new Buffer(secretHash, 'hex')).digest().toString('hex');
-    var block = {
+	
+	var block = {
         version: 0,
         totalAmount: totalAmount,
         totalFee: totalFee,
         reward: reward,
-        previousSecret: previousSecret,
-        secretHash: secretHash,
         payloadHash: payloadHash.digest().toString('hex'),
         timestamp: data.timestamp,
         numberOfTransactions: blockTransactions.length,
@@ -96,8 +95,13 @@ Block.prototype.create = function (data) {
         transactions: blockTransactions
     };
 
-        block.blockSignature = this.sign(block, data.keypair);
+	return private.getPreviousSecret(this.scope.db, data.keypair).then(function(previousSecret){
+	    var secretHash = private.getSecret(data.previousBlock.id, data.keypair);
+	    secretHash = crypto.createHash('sha256').update(new Buffer(secretHash, 'hex')).digest().toString('hex');
+	    block.previousSecret = previousSecret;
+        block.secretHash = secretHash;
 
+        block.blockSignature = this.sign(block, data.keypair);
         block = this.objectNormalize(block);
     return block;
 	    

@@ -582,8 +582,9 @@ Delegates.prototype.generateDelegateList = function (height, cb) {
 			}
 			currentSeed = crypto.createHash('sha256').update(currentSeed).digest();
 		}
+		modules.dice.shuffleDelegates(height, truncDelegateList, cb);
 
-		cb(null, truncDelegateList);
+// 		cb(null, truncDelegateList);
 	});
 
 }
