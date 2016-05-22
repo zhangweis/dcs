@@ -42,10 +42,11 @@ private.getPreviousSecret = function(db, keypair) {
                 return private.getSecret(rows[0].id, keypair);
             });
         } else {
-            return '0000000000000000000000000000000000000000000000000000000000000000';
+            return Block.prototype.emptySecret;
         }
     }.bind(this));
 }
+Block.prototype.emptySecret = '0000000000000000000000000000000000000000000000000000000000000000';
 // Public methods
 Block.prototype.create = function (data) {
 	var transactions = data.transactions.sort(function compare(a, b) {

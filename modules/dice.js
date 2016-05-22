@@ -118,6 +118,21 @@ Dice.prototype.beforeDeleteBlock = function(block, cb){
     }).catch(cb);
 
 }
+private.getLuckyNumber=function(height) {
+    return library.db.query('SELECT ENCODE("previousSecret", \'hex\') AS previous_secret, ENCODE("blockSignature", \'hex\') AS block_signature FROM blocks WHERE height > ${height} ORDER BY "height"', {height:height-slots.delegates-1}).then(function(blocks){
+        var hash = crypto.createHash('sha256');
+        // .update(seedSource, 'utf8').digest();
+        blocks.forEach(function(block){
+            var secret = block.previous_secret;
+            if (secret == library.logic.block.emptySecret) {
+                secret = block.block_signature;
+            }
+            hash.update(block.previous_secret, 'hex');
+        });
+        var numberString = hash.digest().toString('hex').substring(0, 6);
+        return parseInt(numberString, 16)*1000000/256/256/256;
+    });
+}
 Dice.prototype.afterBlockSaved = function(block, cb){
     //dispatch resolve height
     async.each(block.transactions, function(trs, cb) {
@@ -139,70 +154,71 @@ Dice.prototype.afterBlockSaved = function(block, cb){
         if (err) return cb(err);
         //todo resolve all the dices targeted in this block.
         //lucky number from block hash
-
-        var hex = new Buffer(block.blockSignature, 'hex');
-        
-        var luckyNumber = Math.floor((hex[0]*256+hex[1])*1000000/(256*256));
-        var sql = jsonSql.build({
-            type: 'update',
-            table: "asset_dices",
+       
+        var listSql = jsonSql.build({
+            table: "trs",
+            alias: "t",
             condition: {
+                type: self.type,
                 resolveBlockHeight: block.height
             },
-            modifier:{
-                luckyNumber: luckyNumber
-            }
+            fields: ['id', 'type', 'senderId', 'senderPublicKey', 'recipientId', 't.amount', 'fee', 'signature', 'blockId', 'transactionId', {'td.amount':'td_amount'}, 'payout', 'rollHigh'],
+            join: [{
+                type: 'left outer',
+                table: 'asset_dices',
+                alias: "td",
+                fields:['amount', 'payout', 'rollHigh'],
+                on: {"t.id": "td.transactionId"}
+            }]
         });
-        library.db.query(sql.query, sql.values).then(function(){
-            var listSql = jsonSql.build({
-                table: "trs",
-                alias: "t",
-                condition: {
-                    type: self.type,
-                    resolveBlockHeight: block.height
-                },
-                fields: ['id', 'type', 'senderId', 'senderPublicKey', 'recipientId', 't.amount', 'fee', 'signature', 'blockId', 'transactionId', {'td.amount':'td_amount'}, 'payout', 'rollHigh'],
-                join: [{
-                    type: 'left outer',
-                    table: 'asset_dices',
-                    alias: "td",
-                    fields:['amount', 'payout', 'rollHigh'],
-                    on: {"t.id": "td.transactionId"}
-                }]
-            });
+
+        return library.db.query(listSql.query, listSql.values).then(function(transactions){
+            if (transactions.length===0) return cb();
+            return private.getLuckyNumber(block.height).then(function(luckyNumber){
+                var sql = jsonSql.build({
+                    type: 'update',
+                    table: "asset_dices",
+                    condition: {
+                        resolveBlockHeight: block.height
+                    },
+                    modifier:{
+                        luckyNumber: luckyNumber
+                    }
+                });
+                return library.db.query(sql.query, sql.values).then(function(){
     
-            return library.db.query(listSql.query, listSql.values).then(function(transactions){
-                async.each(transactions, function(trs, cb){
-                    trs.payout = parseInt(trs.payout);
-                    var times = (trs.payout/trs.td_amount);
-                    var chanceToWin = 99/times;
-                    var lowerThan = chanceToWin*10000;
-                    var higherThan = (100- chanceToWin)*10000-1;
-                    console.log('lucky>' + higherThan);
-                    var win = (trs.rollHigh && luckyNumber > higherThan) || (!trs.rollHigh && luckyNumber < lowerThan);
-                    var paidOut = win?trs.payout:0;
-                        //win
-                        modules.accounts.mergeAccountAndGet({
-                            address: trs.senderId,
-                            balance: paidOut,
-                            u_balance: paidOut
-                        }, function(e){
-                            if (e) return cb(e);
-                            var updateSql = jsonSql.build({
-                                type: 'update',
-                                table: "asset_dices",
-                                condition: {
-                                    transactionId: trs.id
-                                },
-                                modifier:{
-                                    paidOut: paidOut
-                                }
+                    async.each(transactions, function(trs, cb){
+                        trs.payout = parseInt(trs.payout);
+                        var times = (trs.payout/trs.td_amount);
+                        var chanceToWin = 99/times;
+                        var lowerThan = chanceToWin*10000;
+                        var higherThan = (100- chanceToWin)*10000-1;
+                        console.log('lucky>' + higherThan);
+                        var win = (trs.rollHigh && luckyNumber > higherThan) || (!trs.rollHigh && luckyNumber < lowerThan);
+                        var paidOut = win?trs.payout:0;
+                            //win
+                            modules.accounts.mergeAccountAndGet({
+                                address: trs.senderId,
+                                balance: paidOut,
+                                u_balance: paidOut
+                            }, function(e){
+                                if (e) return cb(e);
+                                var updateSql = jsonSql.build({
+                                    type: 'update',
+                                    table: "asset_dices",
+                                    condition: {
+                                        transactionId: trs.id
+                                    },
+                                    modifier:{
+                                        paidOut: paidOut
+                                    }
+                                });
+                                library.db.query(updateSql.query, updateSql.values).then(function(){
+                                    cb();
+                                }).catch(cb);
                             });
-                            library.db.query(updateSql.query, updateSql.values).then(function(){
-                                cb();
-                            }).catch(cb);
-                        });
-                }, cb);
+                    }, cb);
+                });
             });
         }).catch(cb);
     });
