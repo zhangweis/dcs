@@ -54,7 +54,7 @@ Dice.prototype.create = function (data, trs) {
 }
 
 Dice.prototype.calculateFee = function (trs) {
-    return 100000000;
+    return 0.1*100000000;
 }
 
 Dice.prototype.verify = function (trs, sender, cb, scope) {
@@ -135,16 +135,37 @@ private.getLuckyNumber=function(height) {
 }
 Dice.prototype.afterBlockSaved = function(block, cb){
     //dispatch resolve height
-    async.each(block.transactions, function(trs, cb) {
-        if (trs.type!=6) return cb();
+    var diceTxs = block.transactions.filter(function(tx) {
+        return tx.type == 6;
+    });
+    diceTxs.forEach(function(tx){
+        tx.winAmount = tx.asset.dice.payout - tx.asset.dice.amount;
+    });
+    diceTxs.sort(function(a, b){
+        return a.winAmount - b.winAmount;
+    });
+    var positions = {};
+    var allowedAmount = 0, index = 0;
+    for (var blockOffset = 1; blockOffset <= slots.delegates; blockOffset++) {
+        allowedAmount += blockOffset * blockOffset * 100000000;
+        while (index<diceTxs.length && diceTxs[index].winAmount<= allowedAmount) {
+            positions[diceTxs[index].id] = blockOffset;
+            allowedAmount -= diceTxs[index].winAmount;
+            index++;
+        }
+    }
+    while (index<diceTxs.length) {
+        positions[diceTxs[index++].id] = blockOffset;
+    }
+    async.each(Object.keys(positions), function(txId, cb) {
         var sql = jsonSql.build({
             type: 'update',
             table: "asset_dices",
             condition: {
-                transactionId: trs.id
+                transactionId: txId
             },
             modifier:{
-                resolveBlockHeight: block.height+1
+                resolveBlockHeight: block.height+positions[txId]
             }
         });
         library.db.query(sql.query, sql.values).then(function(){
@@ -193,7 +214,6 @@ Dice.prototype.afterBlockSaved = function(block, cb){
                         var chanceToWin = 99/times;
                         var lowerThan = chanceToWin*10000;
                         var higherThan = (100- chanceToWin)*10000-1;
-                        console.log('lucky>' + higherThan);
                         var win = (trs.rollHigh && luckyNumber > higherThan) || (!trs.rollHigh && luckyNumber < lowerThan);
                         var paidOut = win?trs.payout:0;
                             //win
@@ -280,7 +300,6 @@ Dice.prototype.process = function (trs, sender, cb) {
 }
 
 Dice.prototype.objectNormalize = function (trs) {
-    console.log(trs.asset)
     var report = library.scheme.validate(trs.asset, {
         type: "object", // It is an object
         properties: {
