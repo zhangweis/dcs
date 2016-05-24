@@ -147,7 +147,7 @@ Dice.prototype.afterBlockSaved = function(block, cb){
     var positions = {};
     var allowedAmount = 0, index = 0;
     for (var blockOffset = 1; blockOffset <= slots.delegates; blockOffset++) {
-        allowedAmount += blockOffset * blockOffset * 100000000;
+        allowedAmount += Math.pow(2*2, blockOffset) * 100000000;
         while (index<diceTxs.length && diceTxs[index].winAmount<= allowedAmount) {
             positions[diceTxs[index].id] = blockOffset;
             allowedAmount -= diceTxs[index].winAmount;
