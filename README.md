@@ -1,5 +1,6 @@
-# Lisk
+# DCS
 
+Access the testnet from http://120.27.4.72:7000/ with password "record truth cost animal congress harsh obtain surround puppy rain town exit"
 Lisk is a next generation crypto-currency and decentralized application platform, written entirely in JavaScript. For more information please refer to our website: https://lisk.io/.
 
 ## Installation
